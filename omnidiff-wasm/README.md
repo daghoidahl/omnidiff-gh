@@ -17,13 +17,14 @@ source range then destination range; columns are byte offsets in the row.
 
 ## Build
 
-1. `git clone https://github.com/ivankovic/omnidiff ../omnidiff-src` (tested at commit 54c504b)
-   and `git -C ../omnidiff-src apply $PWD/omnidiff-wasm-support.patch`.
-2. `rustup target add wasm32-wasip1` and `pip install ziglang`.
-3. `./build.sh` (or `make wasm` from the repository root); `build.mjs` copies the result into `dist/`.
+1. `rustup target add wasm32-wasip1` and `pip install ziglang`.
+2. `./build.sh` (or `make wasm` from the repository root); `build.mjs` copies the result into `dist/`.
    Result: 38 MB wasm (3.6 MB gzipped), 23 grammars.
 
 ## What the patch does and why
+
+`omnidiff-wasm-support.patch` is the diff of the fork's `wasm` branch against upstream, kept here
+for reference; `Cargo.toml` pins that branch.
 
 - `tree-sitter-vim` becomes an optional feature (on by default, off for wasm). Its 4.5 MB
   `parser.c` needs more than 14 GB RAM to compile for wasm32 with clang 18 or zig's clang, at any

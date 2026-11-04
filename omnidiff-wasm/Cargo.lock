@@ -809,6 +809,7 @@ dependencies = [
 [[package]]
 name = "omnidiff"
 version = "0.3.0"
+source = "git+https://github.com/daghoidahl/omnidiff?rev=80d9517b#80d9517b0403188df4a080e822e7df5d79f74927"
 dependencies = [
  "anyhow",
  "bzip2",
