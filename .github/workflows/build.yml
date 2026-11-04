@@ -30,9 +30,9 @@ jobs:
       - run: make zip
       - uses: actions/upload-artifact@v4
         with:
-          name: omnidiff-github-chrome
-          path: omnidiff-github-chrome.zip
+          name: omnidiff-gh-chrome
+          path: omnidiff-gh-chrome.zip
       - if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: omnidiff-github-chrome.zip
+          files: omnidiff-gh-chrome.zip

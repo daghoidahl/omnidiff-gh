@@ -12,7 +12,7 @@ its line diff, which still splits changed lines into sub-line updates.
 
 ## Install
 
-**Chrome:** download `omnidiff-github-chrome.zip` from a release (or `make zip`), unpack it,
+**Chrome:** download `omnidiff-gh-chrome.zip` from a release (or `make zip`), unpack it,
 open `chrome://extensions`, turn on Developer mode, Load unpacked, pick the folder.
 
 **Safari (macOS, needs Xcode):** `make safari`, open `safari/omnidiff for GitHub.xcodeproj`, run

@@ -1,5 +1,5 @@
 {
-	"name": "omnidiff-github",
+	"name": "omnidiff-gh",
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
@@ -8,7 +8,7 @@
 		"build": "node build.mjs",
 		"check": "tsc --noEmit",
 		"test": "node test/engine-check.mjs",
-		"zip": "cd dist && zip -qr -9 ../omnidiff-github-chrome.zip . && cd .. && ls -la omnidiff-github-chrome.zip"
+		"zip": "cd dist && zip -qr -9 ../omnidiff-gh-chrome.zip . && cd .. && ls -la omnidiff-gh-chrome.zip"
 	},
 	"dependencies": {
 		"@bjorn3/browser_wasi_shim": "0.4.2"

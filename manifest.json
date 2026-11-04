@@ -4,7 +4,7 @@
 	"name": "omnidiff for GitHub",
 	"version": "0.1.0",
 	"description": "Paints only what actually changed in a pull request's diff, using the omnidiff structural diff engine.",
-	"homepage_url": "https://github.com/daghoidahl/omnidiff-github",
+	"homepage_url": "https://github.com/daghoidahl/omnidiff-gh",
 	"minimum_chrome_version": "128",
 	"browser_specific_settings": {
 		"safari": {

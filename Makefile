@@ -27,7 +27,7 @@ zip: build
 
 # Converts dist/ into an Xcode project under safari/ (macOS only); open it and run it once to install.
 safari: build
-	xcrun safari-web-extension-converter dist --project-location safari --app-name "omnidiff for GitHub" --bundle-identifier no.medthings.omnidiff-github --macos-only --no-open --force
+	xcrun safari-web-extension-converter dist --project-location safari --app-name "omnidiff for GitHub" --bundle-identifier no.medthings.omnidiff-gh --macos-only --no-open --force
 
 clean:
-	rm -rf dist omnidiff-github-chrome.zip omnidiff-wasm/target
+	rm -rf dist omnidiff-gh-chrome.zip omnidiff-wasm/target
