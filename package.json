@@ -1,0 +1,21 @@
+{
+	"name": "omnidiff-github",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"license": "AGPL-3.0-only",
+	"scripts": {
+		"build": "node build.mjs",
+		"check": "tsc --noEmit",
+		"test": "node test/engine-check.mjs",
+		"zip": "cd dist && zip -qr -9 ../omnidiff-github-chrome.zip . && cd .. && ls -la omnidiff-github-chrome.zip"
+	},
+	"dependencies": {
+		"@bjorn3/browser_wasi_shim": "0.4.2"
+	},
+	"devDependencies": {
+		"@types/chrome": "0.3.7",
+		"esbuild": "0.28.2",
+		"typescript": "7.0.2"
+	}
+}

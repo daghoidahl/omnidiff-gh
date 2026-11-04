@@ -1,0 +1,24 @@
+/* Only what omnidiff found changed gets color, like in its own viewer: painted lines lose GitHub's line tint */
+td.diff-text-cell:has(.omnidiff-painted),
+.blob-code-addition:has(.omnidiff-painted),
+.blob-code-deletion:has(.omnidiff-painted) {
+	background-color: var(--bgColor-default, fuchsia) !important;
+}
+
+::highlight(omnidiff-deletion) {
+	background-color: var(--diffBlob-deletionWord-bgColor, fuchsia);
+}
+
+::highlight(omnidiff-addition) {
+	background-color: var(--diffBlob-additionWord-bgColor, fuchsia);
+}
+
+::highlight(omnidiff-move) {
+	background-color: var(--bgColor-accent-muted, fuchsia);
+	text-decoration: underline dotted;
+}
+
+/* GitHub's own word-level marks in the legacy view would double up with ours */
+.omnidiff-painted .x {
+	background-color: transparent !important;
+}

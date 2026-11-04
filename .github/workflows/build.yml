@@ -1,0 +1,38 @@
+# Builds the wasm engine from the pinned omnidiff revision, the extension, and runs the engine check.
+# On a tag, attaches the Chrome zip to a release. Weekly, so a broken upstream pin shows up unprompted.
+name: build
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 6 * * 1'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+      - run: pip install ziglang==0.17.0
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            omnidiff-wasm/target
+          key: wasm-${{ hashFiles('omnidiff-wasm/Cargo.lock', 'omnidiff-wasm/src/*.rs', 'omnidiff-wasm/.cargo/config.toml') }}
+      - run: make wasm
+      - run: make test
+      - run: make zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: omnidiff-github-chrome
+          path: omnidiff-github-chrome.zip
+      - if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: omnidiff-github-chrome.zip

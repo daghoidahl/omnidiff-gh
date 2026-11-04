@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.zip
+omnidiff-wasm/target/
+# local omnidiff checkout used by omnidiff-wasm/build.sh
+omnidiff-src/
+safari/

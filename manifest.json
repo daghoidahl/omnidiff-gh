@@ -1,0 +1,40 @@
+{
+	"$schema": "https://json.schemastore.org/chrome-manifest",
+	"manifest_version": 3,
+	"name": "omnidiff for GitHub",
+	"version": "0.1.0",
+	"description": "Paints only what actually changed in a pull request's diff, using the omnidiff structural diff engine.",
+	"homepage_url": "https://github.com/daghoidahl/omnidiff-github",
+	"minimum_chrome_version": "128",
+	"browser_specific_settings": {
+		"safari": {
+			"strict_min_version": "18.0"
+		}
+	},
+	"permissions": ["storage"],
+	"host_permissions": ["https://github.com/*", "https://api.github.com/*"],
+	"options_ui": {
+		"page": "options.html"
+	},
+	"background": {
+		"service_worker": "background.js",
+		"type": "module"
+	},
+	"content_scripts": [
+		{
+			"matches": ["https://github.com/*"],
+			"js": ["content.js"],
+			"css": ["content.css"],
+			"run_at": "document_idle"
+		}
+	],
+	"web_accessible_resources": [
+		{
+			"resources": ["omnidiff.wasm"],
+			"matches": ["https://github.com/*"]
+		}
+	],
+	"content_security_policy": {
+		"extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+	}
+}
