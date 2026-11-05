@@ -3,23 +3,28 @@
 
 WASM = omnidiff-wasm/target/wasm32-wasip1/release/omnidiff_wasm.wasm
 
-.PHONY: all fetch-wasm wasm build test zip safari clean
+.PHONY: all fast fast-wasm fetch-wasm wasm build test zip safari clean
 
 all: wasm build test zip
 
+# Like `all`, but gets the engine with fast-wasm instead of always building it from source.
+fast: fast-wasm build test zip
+
 wasm: $(WASM)
 
-# Skips the Rust build: downloads the engine CI built on main (needs `gh`, logged in).
+$(WASM): omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock omnidiff-wasm/src/*.rs omnidiff-wasm/.cargo/config.toml
+	cd omnidiff-wasm && ./build.sh
+
+# Downloads the engine CI built on main (needs `gh`, logged in) unless the engine sources differ
+# from origin/main, so local changes are never replaced by an older CI build. Falls back to `wasm`
+# if the download fails. Run `git fetch` first so origin/main is current.
+WASM_SRC = omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock omnidiff-wasm/src omnidiff-wasm/.cargo/config.toml
+fast-wasm:
+	if git diff --quiet origin/main -- $(WASM_SRC) && $(MAKE) fetch-wasm; then :; else $(MAKE) wasm; fi
+
 fetch-wasm:
 	mkdir -p $(dir $(WASM))
 	gh run download -R daghoidahl/omnidiff-gh -n omnidiff-wasm -D $(dir $(WASM)) $$(gh run list -R daghoidahl/omnidiff-gh -b main -w build -s success -L 1 --json databaseId -q ".[0].databaseId")
-
-WASM_SRC = omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock omnidiff-wasm/src omnidiff-wasm/.cargo/config.toml
-
-# Local changes to the engine sources are built locally; otherwise CI's build is downloaded,
-# falling back to a local build if the download fails.
-$(WASM): omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock omnidiff-wasm/src/*.rs omnidiff-wasm/.cargo/config.toml
-	if git diff --quiet origin/main -- $(WASM_SRC) && $(MAKE) fetch-wasm; then :; else cd omnidiff-wasm && ./build.sh; fi
 
 build: node_modules
 	npm run build
