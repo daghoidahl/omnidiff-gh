@@ -15,7 +15,7 @@ its line diff, which still splits changed lines into sub-line updates.
 **Chrome:** download `omnidiff-gh-chrome.zip` from a release (or `make zip`), unpack it,
 open `chrome://extensions`, turn on Developer mode, Load unpacked, pick the folder.
 
-**Safari (macOS, needs Xcode):** `make safari`, open `safari/omnidiff for GitHub.xcodeproj`, run
+**Safari (macOS, needs Xcode):** `make fast-wasm safari` (or `make wasm safari`), open `safari/omnidiff for GitHub/omnidiff for GitHub.xcodeproj`, run
 it once, then enable the extension in Safari's settings and allow it on github.com. Safari does
 not keep unsigned extensions enabled across restarts unless "Allow unsigned extensions" is on in
 the Develop menu.
@@ -27,6 +27,8 @@ It is only used for api.github.com; file contents come from github.com with the 
 
 ```
 make            # wasm engine + extension + engine check + Chrome zip
+make fast       # the same, but downloads the engine CI built (needs gh) unless
+                # the engine sources differ from origin/main
 ```
 
 Needs node, a Rust toolchain with `rustup target add wasm32-wasip1`, `pip install ziglang` (zig
