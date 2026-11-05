@@ -3,11 +3,16 @@
 
 WASM = omnidiff-wasm/target/wasm32-wasip1/release/omnidiff_wasm.wasm
 
-.PHONY: all wasm build test zip safari clean
+.PHONY: all fetch-wasm wasm build test zip safari clean
 
 all: wasm build test zip
 
 wasm: $(WASM)
+
+# Skips the Rust build: downloads the engine CI built on main (needs `gh`, logged in).
+fetch-wasm:
+	mkdir -p $(dir $(WASM))
+	gh run download -R daghoidahl/omnidiff-gh -n omnidiff-wasm -D $(dir $(WASM)) $$(gh run list -R daghoidahl/omnidiff-gh -b main -w build -s success -L 1 --json databaseId -q ".[0].databaseId")
 
 $(WASM): omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock omnidiff-wasm/src/*.rs omnidiff-wasm/.cargo/config.toml
 	cd omnidiff-wasm && ./build.sh

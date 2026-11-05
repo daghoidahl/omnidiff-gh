@@ -26,6 +26,10 @@ jobs:
             omnidiff-wasm/target
           key: wasm-${{ hashFiles('omnidiff-wasm/Cargo.lock', 'omnidiff-wasm/src/*.rs', 'omnidiff-wasm/.cargo/config.toml') }}
       - run: make wasm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: omnidiff-wasm
+          path: omnidiff-wasm/target/wasm32-wasip1/release/omnidiff_wasm.wasm
       - run: make test
       - run: make zip
       - uses: actions/upload-artifact@v4
