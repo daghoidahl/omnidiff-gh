@@ -14,8 +14,12 @@ fetch-wasm:
 	mkdir -p $(dir $(WASM))
 	gh run download -R daghoidahl/omnidiff-gh -n omnidiff-wasm -D $(dir $(WASM)) $$(gh run list -R daghoidahl/omnidiff-gh -b main -w build -s success -L 1 --json databaseId -q ".[0].databaseId")
 
+WASM_SRC = omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock omnidiff-wasm/src omnidiff-wasm/.cargo/config.toml
+
+# Local changes to the engine sources are built locally; otherwise CI's build is downloaded,
+# falling back to a local build if the download fails.
 $(WASM): omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock omnidiff-wasm/src/*.rs omnidiff-wasm/.cargo/config.toml
-	cd omnidiff-wasm && ./build.sh
+	if git diff --quiet origin/main -- $(WASM_SRC) && $(MAKE) fetch-wasm; then :; else cd omnidiff-wasm && ./build.sh; fi
 
 build: node_modules
 	npm run build
