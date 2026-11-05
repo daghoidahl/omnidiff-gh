@@ -23,8 +23,9 @@ fast-wasm:
 	if git diff --quiet origin/main -- $(WASM_SRC) && $(MAKE) fetch-wasm; then :; else $(MAKE) wasm; fi
 
 fetch-wasm:
-	mkdir -p $(dir $(WASM))
-	gh run download -R daghoidahl/omnidiff-gh -n omnidiff-wasm -D $(dir $(WASM)) $$(gh run list -R daghoidahl/omnidiff-gh -b main -w build -s success -L 1 --json databaseId -q ".[0].databaseId")
+	rm -rf $(dir $(WASM))fetch && mkdir -p $(dir $(WASM))fetch
+	gh run download -R daghoidahl/omnidiff-gh -n omnidiff-wasm -D $(dir $(WASM))fetch $$(gh run list -R daghoidahl/omnidiff-gh -b main -w build -s success -L 1 --json databaseId -q ".[0].databaseId")
+	mv -f $(dir $(WASM))fetch/omnidiff_wasm.wasm $(WASM) && rmdir $(dir $(WASM))fetch
 
 build: node_modules
 	npm run build
