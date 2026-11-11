@@ -71,17 +71,26 @@ const shas = new Map<string, Promise<Shas>>();
 const pathsByAnchor = new Map<string, Promise<Map<string, string>>>();
 const fileDiffs = new Map<string, Promise<Versions | undefined>>();
 
-const prKey = ({owner, name, pr}: Repo): string => `${owner}/${name}#${pr}`;
+const prKey = ({owner, name, pr, range}: Repo): string =>
+	`${owner}/${name}#${pr}${range ? `@${range.from}..${range.to}` : ''}`;
 
-/** The pull request's diff is merge base → head, which is what "Files changed" shows */
+/** The whole PR is merge base → head; one commit is its parent → it; a range is from → to */
 async function getShas(repo: Repo): Promise<Shas> {
 	const key = prKey(repo);
 	if (!shas.has(key)) {
 		shas.set(key, (async () => {
-			const pr = (await api<{base: {sha: string}; head: {sha: string}}>(`repos/${repo.owner}/${repo.name}/pulls/${repo.pr}`)).data;
-			const compare = (await api<{merge_base_commit: {sha: string}}>(
-				`repos/${repo.owner}/${repo.name}/compare/${pr.base.sha}...${pr.head.sha}`,
-			)).data;
+			const api_ = `repos/${repo.owner}/${repo.name}`;
+			if (repo.range?.from) {
+				return {base: repo.range.from, head: repo.range.to};
+			}
+
+			if (repo.range) {
+				const commit = (await api<{sha: string; parents: Array<{sha: string}>}>(`${api_}/commits/${repo.range.to}`)).data;
+				return {base: commit.parents[0].sha, head: commit.sha};
+			}
+
+			const pr = (await api<{base: {sha: string}; head: {sha: string}}>(`${api_}/pulls/${repo.pr}`)).data;
+			const compare = (await api<{merge_base_commit: {sha: string}}>(`${api_}/compare/${pr.base.sha}...${pr.head.sha}`)).data;
 			return {base: compare.merge_base_commit.sha, head: pr.head.sha};
 		})());
 	}

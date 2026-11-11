@@ -1,11 +1,20 @@
 // GitHub's REST API, with the token from the options page when there is one (private repositories).
 
-export type Repo = {owner: string; name: string; pr: number};
+/**
+ * A pull request's "Files changed" page. `range` is set when the URL shows part of the PR:
+ * `/changes/<sha>` (one commit) or `/changes/<from>..<to>` (a commit range); otherwise the page
+ * shows the whole PR, merge base to head.
+ */
+export type Repo = {owner: string; name: string; pr: number; range?: {from: string; to: string}};
 
-/** The repository and pull request of a "Files changed" URL, or undefined elsewhere */
 export function repoFromLocation({pathname}: Location = location): Repo | undefined {
-	const match = /^\/([^/]+)\/([^/]+)\/pull\/(\d+)\/(?:files|changes)(?:\/|$)/.exec(pathname);
-	return match ? {owner: match[1], name: match[2], pr: Number(match[3])} : undefined;
+	const match = /^\/([^/]+)\/([^/]+)\/pull\/(\d+)\/(?:files|changes)(?:\/(?:([\da-f]{7,40})\.\.)?([\da-f]{7,40}))?(?:\/|$)/.exec(pathname);
+	if (!match) {
+		return undefined;
+	}
+
+	const [, owner, name, pr, from, to] = match;
+	return {owner, name, pr: Number(pr), ...to && {range: {from: from ?? '', to}}};
 }
 
 async function token(): Promise<string | undefined> {

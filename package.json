@@ -7,7 +7,7 @@
 	"scripts": {
 		"build": "node build.mjs",
 		"check": "tsc --noEmit",
-		"test": "node test/engine-check.mjs",
+		"test": "node test/engine-check.mjs && npx esbuild src/github.ts --format=esm --outfile=dist/github-test.js --log-level=warning && node test/url-check.mjs",
 		"zip": "cd dist && zip -qr -9 ../omnidiff-gh-chrome.zip . && cd .. && ls -la omnidiff-gh-chrome.zip"
 	},
 	"dependencies": {
