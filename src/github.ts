@@ -17,9 +17,15 @@ export function repoFromLocation({pathname}: Location = location): Repo | undefi
 	return {owner, name, pr: Number(pr), ...to && {range: {from: from ?? '', to}}};
 }
 
-async function token(): Promise<string | undefined> {
+export async function token(): Promise<string | undefined> {
 	const stored = await chrome.storage.local.get('token') as {token?: string};
 	return stored.token || undefined;
+}
+
+export class ApiError extends Error {
+	constructor(readonly status: number, url: string) {
+		super(`omnidiff: GitHub API ${status} for ${url}`);
+	}
 }
 
 export async function api<T>(path: string): Promise<{data: T; next: string | undefined}> {
@@ -32,7 +38,7 @@ export async function api<T>(path: string): Promise<{data: T; next: string | und
 		},
 	});
 	if (!response.ok) {
-		throw new Error(`omnidiff: GitHub API ${response.status} for ${url}`);
+		throw new ApiError(response.status, url);
 	}
 
 	const next = /<([^<>]+)>; rel="next"/.exec(response.headers.get('link') ?? '')?.[1];

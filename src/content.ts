@@ -1,5 +1,5 @@
 import {type DiffRequest, diffWithEngine, type FileDiff, type Operation, type RangeMatch} from './engine.js';
-import {api, apiList, type Repo, repoFromLocation} from './github.js';
+import {api, ApiError, apiList, type Repo, repoFromLocation, token} from './github.js';
 
 // The engine runs on the main thread (or the background worker); bigger files keep GitHub's diff
 const maxFileBytes = 300_000;
@@ -280,6 +280,19 @@ const codeSelector = [
 ].join(', ');
 
 const seen = new WeakSet<Element>();
+let askedForToken = false;
+
+/** A private repository answers 404 (or 401) without a token: open the options page once, where it goes */
+async function report(error: unknown): Promise<void> {
+	if (error instanceof ApiError && (error.status === 404 || error.status === 401) && !askedForToken && !await token()) {
+		askedForToken = true;
+		console.warn('omnidiff: this repository needs a GitHub token; opening the extension options');
+		await chrome.runtime.sendMessage({openOptions: true});
+		return;
+	}
+
+	console.error(error);
+}
 
 function scan(root: ParentNode): void {
 	if (!repoFromLocation()) {
@@ -289,9 +302,7 @@ function scan(root: ParentNode): void {
 	for (const code of root.querySelectorAll<HTMLElement>(codeSelector)) {
 		if (!seen.has(code)) {
 			seen.add(code);
-			paint(code).catch((error: unknown) => {
-				console.error(error);
-			});
+			paint(code).catch(report);
 		}
 	}
 }

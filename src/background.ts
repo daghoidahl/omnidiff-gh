@@ -1,9 +1,16 @@
 // Chrome refuses to compile wasm in content scripts, so they send the engine their work.
 import {type DiffRequest, diffWithEngine} from './engine.js';
 
-type Message = {omnidiff: DiffRequest};
+type Message = {omnidiff?: DiffRequest; openOptions?: true};
 
 chrome.runtime.onMessage.addListener((message: Message, _sender, sendResponse) => {
+	if (message.openOptions) {
+		chrome.runtime.openOptionsPage().then(() => {
+			sendResponse(true);
+		});
+		return true;
+	}
+
 	if (!message.omnidiff) {
 		return false;
 	}
