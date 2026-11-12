@@ -1,0 +1,81 @@
+# Follows upstream omnidiff releases: puts the wasm patch on top of the newest tag as a new branch
+# wasm-<tag> on the fork, bumps the pin in omnidiff-wasm/Cargo.toml, builds and checks the engine,
+# and opens a pull request here. Needs the secret FORK_TOKEN: a fine-grained token with
+# Contents: write on the omnidiff fork.
+name: update-omnidiff
+on:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+env:
+  FORK: daghoidahl/omnidiff
+  UPSTREAM: ivankovic/omnidiff
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Put the wasm patch on upstream's newest tag
+        id: rebase
+        env:
+          FORK_TOKEN: ${{ secrets.FORK_TOKEN }}
+        run: |
+          set -eu
+          current=$(sed -n 's/.*rev = "\([0-9a-f]*\)".*/\1/p' omnidiff-wasm/Cargo.toml)
+          git clone --quiet "https://x-access-token:${FORK_TOKEN}@github.com/${FORK}" fork
+          cd fork
+          git config user.name 'omnidiff-gh update'
+          git config user.email 'omnidiff-gh@users.noreply.github.com'
+          git remote add upstream "https://github.com/${UPSTREAM}"
+          git fetch --quiet upstream 'refs/tags/*:refs/tags/*'
+          tag=$(git tag --sort=-v:refname | head -1)
+          if git merge-base --is-ancestor "$tag" "$current"; then
+            echo "pinned revision $current is already on $tag"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # The patch is the one commit the pinned revision adds on top of its upstream base
+          git checkout --quiet -b "wasm-${tag}" "$tag"
+          git cherry-pick "$current"
+          git push --quiet origin "wasm-${tag}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "rev=$(git rev-parse --short=8 HEAD)" >> "$GITHUB_OUTPUT"
+      - if: steps.rebase.outputs.tag != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - if: steps.rebase.outputs.tag != ''
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-wasip1
+      - if: steps.rebase.outputs.tag != ''
+        run: pip install ziglang==0.17.0
+      - name: Bump the pin, build and check the engine
+        if: steps.rebase.outputs.tag != ''
+        run: |
+          set -eu
+          sed -i "s|rev = \"[0-9a-f]*\"|rev = \"${{ steps.rebase.outputs.rev }}\"|" omnidiff-wasm/Cargo.toml
+          (cd omnidiff-wasm && cargo update -p omnidiff)
+          make test
+      - name: Open a pull request
+        if: steps.rebase.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.rebase.outputs.tag }}
+          REV: ${{ steps.rebase.outputs.rev }}
+        run: |
+          set -eu
+          branch="update-omnidiff-${TAG}"
+          git config user.name 'omnidiff-gh update'
+          git config user.email 'omnidiff-gh@users.noreply.github.com'
+          git checkout -b "$branch"
+          git add omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock
+          git commit -m "Update omnidiff to ${TAG}
+
+The wasm patch now sits on ${TAG} as the fork's wasm-${TAG} branch
+(revision ${REV}); the engine built and passed its check in CI."
+          git push --force origin "$branch"
+          gh pr create --fill --head "$branch" || gh pr edit "$branch" --title "Update omnidiff to ${TAG}"

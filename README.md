@@ -41,14 +41,20 @@ omnidiff does not accept contributions, and its wasm build needs a patch of two 
 `omnidiff-wasm/omnidiff-wasm-support.patch`: `tree-sitter-vim` optional because its grammar needs
 more than 14 GB of RAM to compile for wasm32, and no threads on wasm). So:
 
-- The patch lives on the `wasm` branch of a fork, `daghoidahl/omnidiff`, as one commit on top of
-  an upstream tag.
-- `omnidiff-wasm/Cargo.toml` pins that branch at a revision.
-- To update: on the fork, `git fetch upstream && git rebase <new tag> wasm && git push --force`,
-  then bump the `rev` in `Cargo.toml`, `cargo update -p omnidiff`, `make`, and commit. If the
-  public API used in `omnidiff-wasm/src/lib.rs` moved, the Rust build says where.
-- CI builds the engine from the pin on every push and every Monday, so an upstream change that
-  breaks the build or the engine check is noticed without anyone asking.
+- The patch lives on the fork `daghoidahl/omnidiff` as one commit on top of an upstream tag, on a
+  branch named after the tag (`wasm-v0.4.0`). A new release gets a new branch; nothing is rebased
+  or force-pushed.
+- `omnidiff-wasm/Cargo.toml` pins the revision of that commit.
+- The `update-omnidiff` workflow runs every Monday (and on demand from the Actions tab): it finds
+  upstream's newest tag, cherry-picks the patch onto it as `wasm-<tag>`, bumps the pin, builds and
+  checks the engine, and opens a pull request here. It needs the repository secret `FORK_TOKEN`, a
+  fine-grained token with Contents: read and write on the fork. If the patch no longer applies or
+  the public API used in `omnidiff-wasm/src/lib.rs` moved, the run fails and says where.
+- By hand, the same steps: on the fork `git checkout -b wasm-<tag> <tag> && git cherry-pick <pinned
+  rev> && git push -u origin wasm-<tag>`, then bump `rev` in `Cargo.toml`, `cargo update -p omnidiff`,
+  `make`, commit.
+- The `build` workflow builds the engine from the pin on every push and every Monday, so an
+  upstream change that breaks the build or the engine check is noticed without anyone asking.
 
 ## Limits
 
