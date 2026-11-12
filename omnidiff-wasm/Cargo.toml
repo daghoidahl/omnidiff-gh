@@ -8,8 +8,8 @@ license = "AGPL-3.0-only"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-# A revision on the wasm branch of the fork: upstream plus the small patch wasm needs, rebased per release.
-omnidiff = { git = "https://github.com/daghoidahl/omnidiff", rev = "80d9517b", default-features = false }
+# A revision on a wasm-<tag> branch of the fork: that upstream tag plus the small patch wasm needs.
+omnidiff = { git = "https://github.com/daghoidahl/omnidiff", rev = "fa1de55f", default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 
