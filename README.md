@@ -54,8 +54,8 @@ more than 14 GB of RAM to compile for wasm32, and no threads on wasm). So:
 
 - Files over 300 KB, and files that are new or deleted, keep GitHub's own diff.
 - Vimscript is not in the wasm build (see above).
-- The engine runs in the background worker on Chrome (which refuses wasm in content scripts) and
-  in the page on Safari. The first diff after the worker wakes recompiles the 38 MB module.
+- The engine runs in the background worker (Chrome refuses wasm in content scripts, and a large
+  file would freeze the page for seconds); if that fails it runs in the page. The first diff after the worker wakes recompiles the 38 MB module.
 - Verified on the React "Files changed" view; the legacy table view is supported by selectors
   copied from Refined GitHub but not verified.
 

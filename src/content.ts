@@ -35,34 +35,37 @@ function highlightFor(operation: Operation, side: Side): Highlight | undefined {
 	}
 }
 
-// Chrome refuses wasm in content scripts; Safari and Firefox allow it. Try here, else ask the worker.
-let engineHere: boolean | undefined;
+// The engine blocks whatever thread it runs on for seconds on a large file (about 2 s for 150 KB),
+// so it runs in the background worker, which also is the only place Chrome allows wasm. If the
+// worker can't run it (not verified on Safari), fall back to the page, which freezes while it works.
+let background: boolean | undefined;
 
 async function diffFile(request: DiffRequest): Promise<FileDiff> {
-	if (engineHere !== false) {
+	if (background !== false) {
 		try {
-			const result = await diffWithEngine(request);
-			engineHere = true;
-			return result;
-		} catch (error) {
-			if (engineHere || !(error instanceof WebAssembly.CompileError)) {
-				throw error;
+			const response = await chrome.runtime.sendMessage({omnidiff: request}) as FileDiff | {error: string} | undefined;
+			if (response && !('error' in response)) {
+				background = true;
+				return response;
 			}
 
-			engineHere = false;
+			if (background) {
+				throw new Error(response?.error ?? 'omnidiff: no response from the background worker');
+			}
+		} catch (error) {
+			if (background) {
+				throw error;
+			}
 		}
+
+		background = false;
 	}
 
-	const response = await chrome.runtime.sendMessage({omnidiff: request}) as FileDiff | {error: string};
-	if ('error' in response) {
-		throw new Error(response.error);
-	}
-
-	return response;
+	return diffWithEngine(request);
 }
 
 type Shas = {base: string; head: string};
-type Versions = FileDiff & {beforeText: string; afterText: string};
+type Versions = FileDiff & {beforeLines: string[]; afterLines: string[]};
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -146,7 +149,11 @@ async function getVersions(repo: Repo, path: string): Promise<Versions | undefin
 				return undefined;
 			}
 
-			return {...await diffFile({before: beforeText, after: afterText, path}), beforeText, afterText};
+			return {
+					...await diffFile({before: beforeText, after: afterText, path}),
+					beforeLines: beforeText.split('\n'),
+					afterLines: afterText.split('\n'),
+				};
 		})());
 	}
 
@@ -257,7 +264,7 @@ async function paint(code: HTMLElement): Promise<void> {
 	}
 
 	const row = line.number - 1;
-	const text = (line.side === 'before' ? versions.beforeText : versions.afterText).split('\n')[row];
+	const text = (line.side === 'before' ? versions.beforeLines : versions.afterLines)[row];
 	if (text === undefined || code.textContent!.replace(/\n$/, '') !== text) {
 		return; // The cell shows something else than the fetched line; better unpainted than wrong
 	}
