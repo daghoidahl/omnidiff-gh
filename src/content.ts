@@ -269,7 +269,12 @@ async function paint(code: HTMLElement): Promise<void> {
 		return; // The cell shows something else than the fetched line; better unpainted than wrong
 	}
 
-	for (const [operation, start, end] of rangesOnRow(versions[line.side], row, text)) {
+	const ranges = rangesOnRow(versions[line.side], row, text);
+	if (isWholeLine(ranges, text)) {
+		return; // GitHub's own full-row tint reads better than a highlight that stops at the text box
+	}
+
+	for (const [operation, start, end] of ranges) {
 		const highlight = highlightFor(operation, line.side);
 		const range = highlight && domRange(code, start, end);
 		if (range) {
@@ -278,6 +283,15 @@ async function paint(code: HTMLElement): Promise<void> {
 	}
 
 	code.classList.add('omnidiff-painted');
+}
+
+/** True when the whole line was inserted or deleted, so there is nothing within it to single out */
+function isWholeLine(ranges: Array<[Operation, number, number]>, text: string): boolean {
+	const painted = ranges.filter(([operation]) => operation !== 'Identical');
+	return painted.length === 1
+		&& painted[0][0] !== 'Move'
+		&& painted[0][1] === 0
+		&& painted[0][2] >= text.trimEnd().length;
 }
 
 const codeSelector = [
