@@ -73,9 +73,6 @@ jobs:
           git config user.email 'omnidiff-gh@users.noreply.github.com'
           git checkout -b "$branch"
           git add omnidiff-wasm/Cargo.toml omnidiff-wasm/Cargo.lock
-          git commit -m "Update omnidiff to ${TAG}
-
-The wasm patch now sits on ${TAG} as the fork's wasm-${TAG} branch
-(revision ${REV}); the engine built and passed its check in CI."
+          git commit -m "Update omnidiff to ${TAG}" -m "The wasm patch now sits on ${TAG} as the fork's wasm-${TAG} branch (revision ${REV}); the engine built and passed its check in CI."
           git push --force origin "$branch"
           gh pr create --fill --head "$branch" || gh pr edit "$branch" --title "Update omnidiff to ${TAG}"
