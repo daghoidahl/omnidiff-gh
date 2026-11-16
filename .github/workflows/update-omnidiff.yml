@@ -32,6 +32,9 @@ jobs:
           git remote add upstream "https://github.com/${UPSTREAM}"
           git fetch --quiet upstream 'refs/tags/*:refs/tags/*'
           tag=$(git tag --sort=-v:refname | head -1)
+          # Fails here, every run, if FORK_TOKEN expired or cannot write: a dry run still asks the fork for push rights
+          git push --dry-run --quiet origin "${current}:refs/heads/fork-token-check"
+          echo "FORK_TOKEN can push to ${FORK}"
           if git merge-base --is-ancestor "$tag" "$current"; then
             echo "pinned revision $current is already on $tag"
             echo "tag=" >> "$GITHUB_OUTPUT"
