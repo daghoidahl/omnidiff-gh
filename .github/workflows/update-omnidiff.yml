@@ -37,9 +37,10 @@ jobs:
             echo "tag=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          # The patch is the one commit the pinned revision adds on top of its upstream base
+          # The patch is the commits the pinned revision adds on top of the upstream tag it is based on
+          base=$(git describe --tags --abbrev=0 "$current")
           git checkout --quiet -b "wasm-${tag}" "$tag"
-          git cherry-pick "$current"
+          git cherry-pick "${base}..${current}"
           git push --quiet origin "wasm-${tag}"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
           echo "rev=$(git rev-parse --short=8 HEAD)" >> "$GITHUB_OUTPUT"
