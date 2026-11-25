@@ -62,6 +62,15 @@ more than 14 GB of RAM to compile for wasm32, and no threads on wasm). So:
 - The `build` workflow builds the engine from the pin on every push and every Monday, so an
   upstream change that breaks the build or the engine check is noticed without anyone asking.
 
+## When GitHub changes its diff page
+
+The extension finds lines by GitHub's markup, which GitHub changes without notice (in November
+2026 its class names became hashed, like `diffText__zi7oZU`; the selectors now use the
+`data-diff-*` attributes). If nothing gets painted and the console shows no error, compare a changed
+row's `outerHTML` on the page with `test/page/row.html`, update the fixture's markup to match (keep its
+text), and run `npm run build && node test/page/check.cjs` (needs Playwright with Chromium). It fails
+until the selectors in `src/content.ts` match again.
+
 ## Limits
 
 - Files over 300 KB, and files that are new or deleted, keep GitHub's own diff.

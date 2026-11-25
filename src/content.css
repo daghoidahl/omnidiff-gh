@@ -1,4 +1,5 @@
 /* Only what omnidiff found changed gets color, like in its own viewer: painted lines lose GitHub's line tint */
+td[data-diff-cell="text"]:has(.omnidiff-painted),
 td.diff-text-cell:has(.omnidiff-painted),
 .blob-code-addition:has(.omnidiff-painted),
 .blob-code-deletion:has(.omnidiff-painted) {

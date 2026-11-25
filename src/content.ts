@@ -209,11 +209,14 @@ function domRange(element: HTMLElement, start: number, end: number): Range | und
 
 function lineNumberOf(code: HTMLElement): {side: Side; number: number} | undefined {
 	// React view: the cell carries the line number; the type is on the `code` element
-	const reactCell = code.closest('td.diff-text-cell[data-line-number]');
+	// React view: the cell carries the line number, the `code` element the type. GitHub renames its
+	// classes (diff-text became diffText__zi7oZU in November 2026); the data attributes have held.
+	const reactCell = code.closest('td[data-diff-cell="text"][data-line-number], td.diff-text-cell[data-line-number]');
 	if (reactCell) {
-		const type = code.closest('code.diff-text')!;
+		const type = code.closest('code[data-diff-type], code.diff-text')!;
+		const deleted = type.getAttribute('data-diff-type') === 'deletion' || type.classList.contains('deletion');
 		const number = Number(reactCell.getAttribute('data-line-number'));
-		return number > 0 ? {side: type.classList.contains('deletion') ? 'before' : 'after', number} : undefined;
+		return number > 0 ? {side: deleted ? 'before' : 'after', number} : undefined;
 	}
 
 	// Legacy view
@@ -295,8 +298,10 @@ function isWholeLine(ranges: Array<[Operation, number, number]>, text: string): 
 }
 
 const codeSelector = [
-	'code.diff-text.deletion .diff-text-inner', // React view, left side
-	'code.diff-text.addition .diff-text-inner', // React view, right side
+	'code[data-diff-type="deletion"] [data-diff-text-inner]', // React view, left side
+	'code[data-diff-type="addition"] [data-diff-text-inner]', // React view, right side
+	'code.diff-text.deletion .diff-text-inner', // React view before November 2026, left side
+	'code.diff-text.addition .diff-text-inner', // React view before November 2026, right side
 	':is(.blob-code-addition, .blob-code-deletion) .blob-code-inner', // Legacy view
 ].join(', ');
 
