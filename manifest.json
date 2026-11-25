@@ -2,7 +2,7 @@
 	"$schema": "https://json.schemastore.org/chrome-manifest",
 	"manifest_version": 3,
 	"name": "omnidiff for GitHub",
-	"version": "0.1.0",
+	"version": "0.0.0",
 	"description": "Paints only what actually changed in a pull request's diff, using the omnidiff structural diff engine.",
 	"homepage_url": "https://github.com/daghoidahl/omnidiff-gh",
 	"minimum_chrome_version": "128",

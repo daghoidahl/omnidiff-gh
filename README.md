@@ -23,6 +23,12 @@ the Develop menu.
 Private repositories: put a personal access token (contents: read) in the extension's options.
 It is only used for api.github.com; file contents come from github.com with the normal session.
 
+## Versions
+
+The version is set in `package.json` only; `make` writes it into the built manifest, with the
+commit it was built from as `version_name` (shown in `chrome://extensions`, e.g. `0.2.0 (e18aea3)`).
+Bump it with each zip that goes to someone.
+
 ## Build
 
 ```

@@ -1,5 +1,6 @@
 // Bundles src/ into dist/, the folder to load unpacked in Chrome or to convert for Safari.
-import {copyFileSync, existsSync, mkdirSync, rmSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {build} from 'esbuild';
 
 const wasm = 'omnidiff-wasm/target/wasm32-wasip1/release/omnidiff_wasm.wasm';
@@ -19,8 +20,13 @@ await build({
 	logLevel: 'info',
 });
 
+// The version comes from package.json; chrome://extensions shows version_name, which adds the commit
+const {version} = JSON.parse(readFileSync('package.json', 'utf8'));
+const commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], {encoding: 'utf8'}).trim();
+const manifest = JSON.parse(readFileSync('manifest.json', 'utf8'));
+writeFileSync('dist/manifest.json', JSON.stringify({...manifest, version, version_name: `${version} (${commit})`}, undefined, '\t'));
+
 for (const [from, to] of [
-	['manifest.json', 'manifest.json'],
 	['src/options.html', 'options.html'],
 	['src/content.css', 'content.css'],
 	[wasm, 'omnidiff.wasm'],
